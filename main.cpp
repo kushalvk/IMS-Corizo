@@ -1,134 +1,93 @@
 #include <iostream>
-#include <fstream>
+#include "linked_list.h"
+#include "stack.h"
+#include "queue.h"
+#include "hash_table.h"
+#include "sorting.h"
+#include "file_handler.h"
+#include "clear_inventory.h"
+
 using namespace std;
 
-struct Product {
-    int id;
-    string name;
-    int quantity;
-    float price;
-    Product* next;
-};
-
-Product* head = NULL;
-
-void addProduct() {
-    Product* p = new Product();
-    cout << "Enter Product ID: ";
-    cin >> p->id;
-    cout << "Enter Product Name: ";
-    cin >> p->name;
-    cout << "Enter Quantity: ";
-    cin >> p->quantity;
-    cout << "Enter Price: ";
-    cin >> p->price;
-
-    p->next = head;
-    head = p;
-    cout << "Product Added Successfully\n";
-}
-
-void displayProducts() {
-    Product* temp = head;
-    cout << "\nID\tName\tQty\tPrice\n";
-    while (temp) {
-        cout << temp->id << "\t" << temp->name << "\t" << temp->quantity << "\t" << temp->price << endl;
-        temp = temp->next;
-    }
-}
-
-void searchProduct() {
-    int id;
-    cout << "Enter Product ID to Search: ";
-    cin >> id;
-    Product* temp = head;
-    while (temp) {
-        if (temp->id == id) {
-            cout << "Product Found: " << temp->name << endl;
-            return;
-        }
-        temp = temp->next;
-    }
-    cout << "Product Not Found\n";
-}
-
-void updateProduct() {
-    int id;
-    cout << "Enter Product ID to Update: ";
-    cin >> id;
-    Product* temp = head;
-    while (temp) {
-        if (temp->id == id) {
-            cout << "Enter New Quantity: ";
-            cin >> temp->quantity;
-            cout << "Enter New Price: ";
-            cin >> temp->price;
-            cout << "Product Updated\n";
-            return;
-        }
-        temp = temp->next;
-    }
-}
-
-void deleteProduct() {
-    int id;
-    cout << "Enter Product ID to Delete: ";
-    cin >> id;
-
-    Product *temp = head, *prev = NULL;
-
-    while (temp) {
-        if (temp->id == id) {
-            if (!prev)
-                head = temp->next;
-            else
-                prev->next = temp->next;
-            delete temp;
-            cout << "Product Deleted\n";
-            return;
-        }
-        prev = temp;
-        temp = temp->next;
-    }
-}
-
-void saveToFile() {
-    ofstream file("inventory.txt");
-    Product* temp = head;
-    while (temp) {
-        file << temp->id << " " << temp->name << " " << temp->quantity << " " << temp->price << endl;
-        temp = temp->next;
-    }
-    file.close();
-}
-
-void loadFromFile() {
-    ifstream file("inventory.txt");
-    while (!file.eof()) {
-        Product* p = new Product();
-        file >> p->id >> p->name >> p->quantity >> p->price;
-        p->next = head;
-        head = p;
-    }
-    file.close();
-}
-
 int main() {
-    loadFromFile();
+    clearInventory();
+    loadInventory();
+
     int choice;
+    Item item;
+
     do {
-        cout << "\n1.Add\n2.Display\n3.Search\n4.Update\n5.Delete\n6.Exit\nChoice: ";
+        cout << "\n--- Inventory Management System ---\n";
+        cout << "1. Add Item\n";
+        cout << "2. Display Items\n";
+        cout << "3. Search Item\n";
+        cout << "4. Delete Item\n";
+        cout << "5. Sort by Price\n";
+        cout << "6. Undo Last Add\n";
+        cout << "7. Exit\n";
+        cout << "Enter choice: ";
         cin >> choice;
 
-        switch(choice) {
-            case 1: addProduct(); break;
-            case 2: displayProducts(); break;
-            case 3: searchProduct(); break;
-            case 4: updateProduct(); break;
-            case 5: deleteProduct(); break;
-        }
-    } while(choice != 6);
+        switch (choice) {
+        case 1:
+            cout << "Enter ID: ";
+            cin >> item.id;
+            cout << "Enter Name: ";
+            cin >> item.name;
+            cout << "Enter Category: ";
+            cin >> item.category;
+            cout << "Enter Quantity: ";
+            cin >> item.quantity;
+            cout << "Enter Price: ";
+            cin >> item.price;
 
-    saveToFile();
+            addItem(item);
+            push(item);
+            hashInsert(item);
+            cout << "Item added successfully\n";
+            saveInventory();
+            break;
+
+        case 2:
+            displayItems();
+            break;
+
+        case 3:
+            cout << "Enter ID to search: ";
+            cin >> item.id;
+            if (hashSearch(item.id))
+                cout << "Item found\n";
+            else
+                cout << "Item not found\n";
+            break;
+
+        case 4:
+            cout << "Enter ID to delete: ";
+            cin >> item.id;
+            deleteItem(item.id);
+            saveInventory();
+            break;
+
+        case 5:
+            bubbleSortByPrice();
+            break;
+
+        case 6:
+            item = pop();
+            if (item.id != -1)
+                deleteItem(item.id);
+            saveInventory();
+            break;
+
+        case 7:
+            saveInventory();
+            cout << "Exiting...\n";
+            break;
+
+        default:
+            cout << "Invalid choice\n";
+        }
+    } while (choice != 7);
+
     return 0;
 }
